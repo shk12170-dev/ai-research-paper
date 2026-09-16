@@ -1,0 +1,539 @@
+<title>기여자 수의 역설</title>
+<style>
+  :root {
+    --bg: #f4f6f3;
+    --surface: #ffffff;
+    --surface-2: #eaeee7;
+    --ink: #17211c;
+    --ink-2: #47534b;
+    --muted: #78877d;
+    --border: #dce2d8;
+    --accent: #00997d;
+    --accent-ink: #ffffff;
+    --accent-soft: #e2f3ef;
+    --bad: #b0392c;
+    --bad-soft: #f7e7e3;
+    --code-bg: #101815;
+    --code-ink: #d9e6e0;
+    --shadow: 0 1px 2px rgba(23,33,28,.06), 0 8px 24px rgba(23,33,28,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101512;
+      --surface: #161d19;
+      --surface-2: #1d2622;
+      --ink: #edf2ef;
+      --ink-2: #b7c3bc;
+      --muted: #7e8d84;
+      --border: #283330;
+      --accent: #22a488;
+      --accent-ink: #04140f;
+      --accent-soft: rgba(34,164,136,.16);
+      --bad: #d96b52;
+      --bad-soft: rgba(217,107,82,.16);
+      --code-bg: #0a0f0d;
+      --code-ink: #cfe3da;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101512;
+    --surface: #161d19;
+    --surface-2: #1d2622;
+    --ink: #edf2ef;
+    --ink-2: #b7c3bc;
+    --muted: #7e8d84;
+    --border: #283330;
+    --accent: #22a488;
+    --accent-ink: #04140f;
+    --accent-soft: rgba(34,164,136,.16);
+    --bad: #d96b52;
+    --bad-soft: rgba(217,107,82,.16);
+    --code-bg: #0a0f0d;
+    --code-ink: #cfe3da;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Source Serif 4", Georgia, "Noto Serif KR", serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+
+  h1, h2, h3 { font-family: "Fraunces", "Source Serif 4", serif; text-wrap: balance; color: var(--ink); margin: 0; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { text-decoration-thickness: 2px; }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---- top bar / nav ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-inner {
+    max-width: 760px; margin: 0 auto; padding: 12px 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .topbar-title { font-family: "Fraunces", serif; font-weight: 600; font-size: .95rem; white-space: nowrap; }
+  .navlinks {
+    display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .navlinks::-webkit-scrollbar { display: none; }
+  .navlinks a {
+    color: var(--ink-2); text-decoration: none; font-size: .8rem; white-space: nowrap;
+    padding: 5px 10px; border-radius: 999px; border: 1px solid transparent;
+  }
+  .navlinks a:hover { border-color: var(--border); color: var(--ink); }
+
+  /* ---- hero ---- */
+  .hero { padding: 44px 0 8px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+  }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--bad); }
+  .hero h1 { font-size: clamp(1.7rem, 4.4vw, 2.5rem); font-weight: 600; line-height: 1.22; }
+  .hero .sub { color: var(--ink-2); font-size: 1.05rem; margin-top: 12px; max-width: 60ch; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px;
+    font-size: .85rem; color: var(--muted);
+  }
+  .meta-row b { color: var(--ink-2); font-weight: 600; }
+
+  .verdict {
+    margin-top: 26px; padding: 18px 20px; border-radius: 14px;
+    background: var(--bad-soft); border: 1px solid color-mix(in srgb, var(--bad) 35%, var(--border));
+    display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
+  }
+  .verdict-badge {
+    font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: .78rem;
+    letter-spacing: .04em; color: var(--bad); background: var(--surface);
+    border: 1px solid color-mix(in srgb, var(--bad) 45%, var(--border));
+    border-radius: 999px; padding: 5px 12px; white-space: nowrap;
+  }
+  .verdict p { margin: 0; color: var(--ink-2); font-size: .95rem; flex: 1 1 260px; }
+  .verdict strong { color: var(--ink); }
+
+  .stat-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin-top: 20px;
+  }
+  .stat-tile {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 14px 12px;
+  }
+  .stat-tile .k { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .stat-tile .v { font-family: "IBM Plex Mono", monospace; font-size: 1.35rem; font-weight: 600; margin-top: 4px; }
+  .stat-tile .v.bad { color: var(--bad); }
+
+  /* ---- sections ---- */
+  section { padding: 40px 0; border-top: 1px solid var(--border); }
+  section:first-of-type { border-top: none; }
+  .section-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; }
+  .section-num {
+    font-family: "IBM Plex Mono", monospace; font-size: .8rem; color: var(--accent);
+    border: 1px solid var(--border); border-radius: 6px; padding: 1px 7px;
+  }
+  h2 { font-size: 1.4rem; font-weight: 600; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin-top: 22px; margin-bottom: 8px; color: var(--ink); }
+  p { color: var(--ink-2); margin: 0 0 14px; max-width: 68ch; }
+  p:last-child { margin-bottom: 0; }
+  .lede { font-size: 1.06rem; color: var(--ink); }
+
+  ul.plain { margin: 0 0 14px; padding-left: 1.2em; color: var(--ink-2); }
+  ul.plain li { margin-bottom: 6px; }
+  ol.reasons { margin: 0; padding-left: 1.3em; color: var(--ink-2); }
+  ol.reasons li { margin-bottom: 12px; }
+  ol.reasons b { color: var(--ink); }
+
+  .repo { font-family: "IBM Plex Mono", monospace; font-size: .88em; background: var(--surface-2);
+    padding: 1px 6px; border-radius: 5px; color: var(--ink-2); }
+
+  /* ---- chart ---- */
+  .chart-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 18px 8px; box-shadow: var(--shadow); margin: 18px 0 8px;
+  }
+  .chart-card figcaption { font-size: .82rem; color: var(--muted); margin-top: 6px; padding-bottom: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .78rem; color: var(--ink-2); margin-bottom: 6px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  #chart-wrap { position: relative; }
+  #chart { width: 100%; height: auto; display: block; overflow: visible; }
+  #chart circle { cursor: pointer; transition: r .1s ease; }
+  #chart .axis-label { fill: var(--muted); font-size: 10px; font-family: "IBM Plex Mono", monospace; }
+  #chart .grid line { stroke: var(--border); stroke-width: 1; }
+  #chart .axis line { stroke: var(--border); stroke-width: 1; }
+  .tooltip {
+    position: absolute; pointer-events: none; z-index: 5; opacity: 0; transition: opacity .08s ease;
+    background: var(--ink); color: var(--bg); font-family: "IBM Plex Mono", monospace; font-size: .72rem;
+    padding: 7px 9px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, -100%);
+    box-shadow: var(--shadow);
+  }
+
+  /* ---- table ---- */
+  .table-scroll { overflow-x: auto; margin: 16px 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .88rem; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { font-family: "IBM Plex Mono", monospace; font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-weight: 500; }
+  td.num, th.num { text-align: right; font-family: "IBM Plex Mono", monospace; }
+  tr.pooled { background: var(--surface-2); font-weight: 600; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; font-size: .74rem; font-family: "IBM Plex Mono", monospace; }
+  .pill.rev { background: var(--bad-soft); color: var(--bad); }
+  .pill.sup { background: var(--accent-soft); color: var(--accent); }
+  .pill i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+  /* ---- callout / aside ---- */
+  .callout {
+    border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    background: var(--surface); border-radius: 0 12px 12px 0; padding: 16px 18px; margin: 16px 0;
+  }
+  .callout.warn { border-left-color: var(--bad); }
+  .callout h4 { margin: 0 0 8px; font-size: .85rem; font-family: "IBM Plex Mono", monospace; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+  .callout p { margin: 0 0 8px; font-size: .92rem; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .refs { list-style: none; margin: 0; padding: 0; }
+  .refs li { padding: 12px 0; border-bottom: 1px solid var(--border); font-size: .92rem; color: var(--ink-2); }
+  .refs li:last-child { border-bottom: none; }
+  .refs .r-title { color: var(--ink); }
+
+  code.block {
+    display: block; background: var(--code-bg); color: var(--code-ink);
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; padding: 12px 14px;
+    border-radius: 10px; overflow-x: auto; white-space: pre; margin: 10px 0;
+  }
+
+  .ai-split {
+    display: grid; gap: 10px; margin-top: 8px;
+  }
+  .ai-split .item {
+    display: grid; grid-template-columns: 22px 1fr; gap: 10px; font-size: .92rem; color: var(--ink-2);
+  }
+  .ai-split .item b { color: var(--ink); }
+  .ai-split .item .n { font-family: "IBM Plex Mono", monospace; color: var(--accent); }
+
+  footer { padding: 30px 0 60px; color: var(--muted); font-size: .82rem; }
+
+  @media (max-width: 620px) {
+    .stat-row { grid-template-columns: 1fr 1fr; }
+    .stat-row .stat-tile:last-child { grid-column: 1 / -1; }
+    .topbar-title { display: none; }
+  }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="topbar-title">기여자 수의 역설</span>
+    <nav class="navlinks">
+      <a href="#abstract">초록</a>
+      <a href="#intro">서론</a>
+      <a href="#method">방법</a>
+      <a href="#results">결과</a>
+      <a href="#discussion">논의</a>
+      <a href="#refs">참고문헌</a>
+      <a href="#repro">재현</a>
+      <a href="#appendix">부록</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow"><span class="dot"></span>과제 10 · AI와 함께 쓰는 첫 논문</div>
+    <h1>기여자가 많으면<br>이슈는 더 빨리 처리될까</h1>
+    <p class="sub">CNCF 클라우드 네이티브 오픈소스 10개 프로젝트, 12개월치 데이터로 검증한 오픈소스 커뮤니티의 오래된 통념.</p>
+    <div class="meta-row">
+      <span><b>작성자</b> 김상혁</span>
+      <span><b>작성일</b> 2026-09-16</span>
+      <span><b>표본</b> 10개 프로젝트 × 12개월 (n=119)</span>
+    </div>
+
+    <div class="verdict">
+      <span class="verdict-badge">가설 기각</span>
+      <p><strong>“활성 기여자 수가 많을수록 이슈 처리 시간이 짧다”</strong>는 가설은 이번 표본에서 지지되지 않았다. 전체적으로는 상관관계가 거의 없었고(r=-0.041), 극단값을 제외하면 오히려 <strong>반대 방향(양의 상관, r=+0.226, p=0.017)</strong>이 유의하게 나타났다.</p>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-tile"><div class="k">Pearson r (전체)</div><div class="v num">-0.041</div></div>
+      <div class="stat-tile"><div class="k">p-value</div><div class="v num">0.661</div></div>
+      <div class="stat-tile"><div class="k">유의한 반대 방향</div><div class="v num bad">r=+0.226</div></div>
+    </div>
+  </div>
+
+  <section id="abstract">
+    <div class="section-head"><span class="section-num">Abstract</span><h2>초록</h2></div>
+    <p class="lede">오픈소스 소프트웨어 운영에서는 “기여자가 많을수록 이슈나 버그가 더 빨리 해결된다”는 통념이 널리 퍼져 있다. 본 연구는 이 통념을 CNCF(Cloud Native Computing Foundation) 소속 클라우드 네이티브 프로젝트 10개(Envoy, Prometheus, containerd, etcd, Vitess, CoreDNS, Helm, TiKV, Linkerd, Rook)를 대상으로 실증적으로 검증했다.</p>
+    <p>GitHub REST API를 통해 각 프로젝트의 최근 12개월간 월별 활성 기여자 수와 이슈 평균 처리 시간을 수집했으며(n=120, 결측 1건 제외 시 119건), 피어슨 상관분석과 세 가지 강건성 검증(로그 변환, 이상치 제외, 프로젝트 단위 집계)을 수행했다. 분석 결과 전체 표본에서는 유의한 상관관계가 나타나지 않았고, 기여자 수가 유독 많은 Envoy를 제외하면 오히려 기여자 수가 많을수록 처리 시간이 길어지는 유의한 양의 상관이 확인되었다. 이는 원래 가설과 반대되는 결과로, 조율 비용 증가 등 대안적 설명이 필요함을 시사한다.</p>
+  </section>
+
+  <section id="intro">
+    <div class="section-head"><span class="section-num">1</span><h2>서론</h2></div>
+    <p>오픈소스 소프트웨어 커뮤니티에는 “눈이 충분히 많으면 버그는 얕아진다(Linus's Law)”는 유명한 격언이 있다. 이 격언은 기여자·리뷰어 수가 많을수록 문제 발견과 해결이 빨라진다는 믿음으로 이어져, 실무에서는 종종 기여자 수나 스타 수를 프로젝트 “건강성”의 대리 지표로 사용한다. 그러나 이 관계가 실제 데이터로 얼마나 뒷받침되는지는 프로젝트마다 다르게 보고되어 왔다.</p>
+    <p>선행 연구를 보면, Nguyen&nbsp;Duc&nbsp;외(2011)는 이해관계자 유형과 협업 정도가 OSS 이슈 처리 시간에 영향을 준다는 직접적 근거를 제시했다. 반면 Ajibode&nbsp;외(2023)는 6개 머신러닝 라이브러리 중 단 1개(Keras)에서만 기여자 수와 이슈 처리 기간 사이 상관관계를 발견했고, 나머지 4개에서는 뚜렷한 관계가 없었다. Eiroa-Lledo&nbsp;외(2023)는 프로젝트 규모·성숙도 같은 프로젝트 특성이 버그 해결 시간에 영향을 준다는 일반적 근거를 제공했으며, Sülün&nbsp;외(2024)는 이슈 템플릿 같은 운영 관행만으로도 해결 시간이 크게(381일→103일) 달라질 수 있음을 보여, 기여자 수 외의 교란 변수가 존재함을 경고했다.</p>
+    <p>이러한 선행 연구들은 대부분 개별 언어 생태계나 일반 오픈소스 저장소를 대상으로 했으며, 클라우드 네이티브 인프라를 다루는 CNCF 생태계에 한정해 “기여자 수 → 이슈 처리 속도” 관계를 검증한 연구는 확인되지 않았다. CNCF는 DevStats라는 공개 데이터 포털을 공식 운영하며 기여자·이슈 지표를 투명하게 공개하고 있어, 이 생태계를 대상으로 한 검증은 실행 가능하면서도 기존 연구의 공백을 채울 수 있는 주제다.</p>
+    <div class="callout">
+      <h4>가설</h4>
+      <p>CNCF 오픈소스 프로젝트는 활성 기여자 수가 많을수록, 이슈가 열린 시점부터 닫히는 시점까지 걸리는 평균 처리 시간이 짧다.</p>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="section-head"><span class="section-num">2</span><h2>방법</h2></div>
+
+    <h3>2.1 분석 대상</h3>
+    <p>CNCF Graduated 등급 프로젝트 중, Kubernetes처럼 여러 저장소·SIG 구조로 나뉘어 집계가 복잡한 경우를 제외하고, 단일 대표 저장소를 가진 프로젝트 10개를 규모가 다양하도록 선정했다: <span class="repo">envoyproxy/envoy</span>, <span class="repo">prometheus/prometheus</span>, <span class="repo">containerd/containerd</span>, <span class="repo">etcd-io/etcd</span>, <span class="repo">vitessio/vitess</span>, <span class="repo">coredns/coredns</span>, <span class="repo">helm/helm</span>, <span class="repo">tikv/tikv</span>, <span class="repo">linkerd/linkerd2</span>, <span class="repo">rook/rook</span>.</p>
+
+    <h3>2.2 변수 정의 및 데이터 출처</h3>
+    <ul class="plain">
+      <li><b>활성 기여자 수</b> — 해당 월에 최소 1회 이상 커밋을 남긴 고유 작성자 수 (GitHub REST API 저장소 커밋 목록)</li>
+      <li><b>이슈 평균 처리 시간</b> — 해당 월에 닫힌 이슈들의 (닫힌 시각 − 생성 시각), 일 단위 평균 (GitHub Search Issues API)</li>
+      <li><b>관측 기간</b> — 2025-09 ~ 2026-08 (최근 12개월)</li>
+      <li><b>데이터 출처</b> — GitHub REST API(api.github.com), 2026년 9월 15일~16일에 실제 호출하여 수집</li>
+    </ul>
+    <p>속도 제한(rate limit)에 대응하는 재시도·백오프·재개 로직을 갖춘 자체 스크립트로 자동 수집했다. 최종 표본 크기는 10개 프로젝트 × 12개월 = 120개 관측치이며, 이 중 1개(CoreDNS, 2026년 2월)는 그 달에 닫힌 이슈가 0건이어서 상관분석에서 제외했다(유효 n=119). 전체 수집에 앞서 CoreDNS 저장소 2025년 1월 한 달치만으로 스크립트 로직을 시험 실행해 정상 산출을 확인한 뒤 전체 수집을 진행했다.</p>
+
+    <h3>2.3 분석 방법 및 가설 기각 기준</h3>
+    <p>피어슨 상관계수(r)와 t-근사 유의확률(p)을 계산하고, 세 가지 강건성 검증을 추가했다: 로그 변환, 이상치(Envoy) 제외 재계산, 프로젝트별 평균 집계. <b>사전에 정한 기각 기준</b>은 “p≥0.05이거나, 부호가 가설이 예측한 음(−)의 방향이 아닌 경우”였다.</p>
+
+    <h3>2.4 바뀐 조건과 고정한 조건</h3>
+    <ul class="plain">
+      <li>바뀐 조건 — 프로젝트(10개), 관측 월(12개월)</li>
+      <li>고정한 조건 — 변수의 조작적 정의, 데이터 출처, 관측 기간의 길이</li>
+    </ul>
+  </section>
+
+  <section id="results">
+    <div class="section-head"><span class="section-num">3</span><h2>결과</h2></div>
+    <p>전체 표본(n=119)에서는 통계적으로 유의한 상관관계가 나타나지 않았다. 프로젝트별로 보면 4개는 가설이 예측한 음의 상관 방향을 보였으나 모두 유의하지 않았고(p&gt;0.4), 6개는 가설과 반대인 양의 상관을 보였다 — 그중 <b>CoreDNS는 p&lt;0.001로 강하고 뚜렷하게 유의</b>했다.</p>
+
+    <figure class="chart-card">
+      <div class="legend">
+        <span><i style="background:var(--muted)"></i>그 외 8개 프로젝트</span>
+        <span><i style="background:var(--bad)"></i>CoreDNS (가장 강한 반대 방향, p&lt;0.001)</span>
+        <span><i style="background:var(--accent)"></i>Envoy (기여자 수 최상위 이상치)</span>
+      </div>
+      <div id="chart-wrap">
+        <svg id="chart" viewBox="0 0 640 400" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="tooltip" id="tooltip"></div>
+      </div>
+      <figcaption>x축: 월별 활성 기여자 수 · y축: 월별 이슈 평균 처리일 (점에 마우스를 올리면 값을 볼 수 있음)</figcaption>
+    </figure>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>프로젝트</th><th class="num">r</th><th class="num">p</th><th class="num">n</th><th class="num">평균 기여자</th><th class="num">평균 처리일</th><th>방향</th></tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+
+    <h3>강건성 검증</h3>
+    <ul class="plain">
+      <li><b>로그 변환</b> (기여자 수 우측 치우침 보정) — r=0.026, p=0.780 → 여전히 관계 없음</li>
+      <li><b>Envoy 제외 재계산</b> — r=+0.226, p=0.017 → 유의한 양의 상관(가설과 반대 방향)으로 전환</li>
+      <li><b>프로젝트별 평균 집계</b> (n=10) — r=-0.178, p=0.610 → 방향은 가설과 같으나 표본 부족으로 유의하지 않음</li>
+    </ul>
+  </section>
+
+  <section id="discussion">
+    <div class="section-head"><span class="section-num">4</span><h2>논의</h2></div>
+
+    <h3>4.1 가설 검증 결과</h3>
+    <p>가설은 지지되지 않았다. 극단값(Envoy)을 제외하면 통계적으로 유의한 반대 방향의 관계가 나타났고, 유일하게 강하게 유의했던 CoreDNS 역시 반대 방향이었다. 데이터에 맞춰 가설을 수정하지 않고, 원래 문장 그대로 <b>기각</b>하는 것이 타당하다고 판단했다.</p>
+
+    <h3>4.2 반대 방향으로 나타난 이유 — 대안 설명</h3>
+    <ol class="reasons">
+      <li><b>운영 관행 차이</b> — Sülün 외(2024)가 보였듯 이슈 템플릿·트리아지 체계가 처리 시간을 크게 좌우할 수 있는데, 이번 연구는 이 변수를 통제하지 못했다. 기여자가 늘수록 조율 비용(coordination overhead)이 함께 늘었을 가능성이 있다.</li>
+      <li><b>프로젝트 규모·복잡도</b> — Eiroa-Lledo 외(2023)가 지적한 대로, Envoy처럼 기여자 수 자체가 큰 프로젝트는 기업 소속 상근 인력 비중이 높아 “기여자 수”의 의미가 다른 프로젝트와 다를 수 있다.</li>
+      <li><b>관계 자체가 프로젝트마다 다름</b> — Ajibode 외(2023)가 6개 라이브러리 중 1개에서만 상관관계를 발견했듯, 이번에도 10개 중 1개(CoreDNS)만 강하게 유의했다. “기여자 수 하나로 설명되는 보편 법칙은 없다”는 결론과 일치한다.</li>
+      <li><b>측정 방식의 한계</b> — 활성 기여자 수를 커밋 작성자 수로 근사해, 봇 계정·일회성 기여자가 섞였을 수 있다.</li>
+    </ol>
+
+    <h3>4.3 한계</h3>
+    <ul class="plain">
+      <li>CNCF 소속 10개 프로젝트·12개월로 제한되어 오픈소스 전반으로 일반화할 수 없다.</li>
+      <li>“활성 기여자 수”는 커밋 작성자 수의 근사치이며 봇 계정을 구분하지 않았다.</li>
+      <li>“닫힌 이슈”에는 해결된 것과 wontfix/stale로 종료된 것이 섞여 있다.</li>
+      <li>상관관계 분석이므로 인과관계나 역인과 가능성을 배제할 수 없다.</li>
+    </ul>
+
+    <h3>4.4 결론</h3>
+    <p>이번 표본(n=119)에서는 활성 기여자 수와 이슈 평균 처리 시간 사이에 유의미한 음의 상관관계가 나타나지 않았다. 오히려 CoreDNS처럼 기여자가 많을수록 처리 시간이 길어지는 강한 반대 방향의 사례가 있었고, 이상치인 Envoy를 제외하면 전체적으로도 유의한 양의 상관이 나타났다. 따라서 원래 가설은 이 표본에서는 <b>기각</b>되며, 일부 프로젝트에서는 기여자 증가가 조율 비용 증가로 이어져 처리를 늦출 수 있다는 정반대의 가능성이 시사된다. 이 결론은 이번에 수집한 10개 CNCF 프로젝트·12개월 데이터에 한정된다.</p>
+  </section>
+
+  <section id="refs">
+    <div class="section-head"><span class="section-num">§</span><h2>참고문헌</h2></div>
+    <ul class="refs">
+      <li><span class="r-title">Nguyen Duc, A., Cruzes, D. S., Ayala, C., &amp; Conradi, R. (2011).</span> Impact of Stakeholder Type and Collaboration on Issue Resolution Time in OSS Projects. <i>Open Source Systems: Grounding Research</i> (OSS 2011), IFIP AICT 365. Springer. <a href="https://doi.org/10.1007/978-3-642-24418-6_1" target="_blank" rel="noopener">doi.org/10.1007/978-3-642-24418-6_1</a></li>
+      <li><span class="r-title">Ajibode, A., et al. (2023).</span> Software issues report for bug fixing process: An empirical study of machine-learning libraries. <i>arXiv:2312.06005.</i> <a href="https://arxiv.org/abs/2312.06005" target="_blank" rel="noopener">arxiv.org/abs/2312.06005</a></li>
+      <li><span class="r-title">Eiroa-Lledo, C., Ali, S., Pinto, R., Anderson, E., &amp; Linstead, E. (2023).</span> Large-Scale Identification and Analysis of Factors Impacting Simple Bug Resolution Times in Open Source Software Repositories. <i>Applied Sciences, 13(5), 3150.</i> <a href="https://doi.org/10.3390/app13053150" target="_blank" rel="noopener">doi.org/10.3390/app13053150</a></li>
+      <li><span class="r-title">Sülün, E., et al. (2024).</span> An Empirical Analysis of Issue Templates Usage in Large-Scale Projects on GitHub. <i>ACM Transactions on Software Engineering and Methodology.</i> <a href="https://doi.org/10.1145/3643673" target="_blank" rel="noopener">doi.org/10.1145/3643673</a></li>
+    </ul>
+  </section>
+
+  <section id="repro">
+    <div class="section-head"><span class="section-num">↻</span><h2>재현 방법</h2></div>
+    <p>원자료(raw_data.csv), 수집 스크립트(collect_data.py), 분석 스크립트(analyze_data.py)는 별도 재현 패키지(ZIP)에 포함되어 있다. GitHub Personal Access Token을 환경변수로 설정한 뒤 아래 명령으로 원자료를 재수집하고 표·그림을 재생성할 수 있다.</p>
+    <code class="block">GITHUB_TOKEN=발급받은_토큰 python collect_data.py
+python analyze_data.py</code>
+    <p>같은 쿼리라도 이후 재실행하면 GitHub의 실시간 상태에 따라 값이 달라질 수 있다 — 이 논문의 수치는 2026년 9월 15일~16일 수집분을 기준으로 한다.</p>
+  </section>
+
+  <section id="appendix">
+    <div class="section-head"><span class="section-num">A</span><h2>부록. 연구 설계 및 진행 과정</h2></div>
+
+    <h3>A.1 관심 분야와 후보 주제</h3>
+    <p>관심 분야는 네트워크 보안, 프론트엔드/백엔드 개발, 클라우드 엔지니어링이었다. 이 안에서 AI와 함께 공개 데이터로 검증 가능한 후보 주제 10개를 브레인스토밍한 뒤, 다음 3개로 좁혔다.</p>
+    <ul class="plain">
+      <li>후보 A — 오픈소스 인기도(스타 수)가 취약점 대응 속도에 영향을 준다 (GitHub Advisory DB 기반)</li>
+      <li>후보 B — 네트워크 트래픽 특성이 공격 트래픽 분류와 관련 있다 (CICIDS2017/NSL-KDD 기반)</li>
+      <li>후보 C (채택) — CNCF 프로젝트의 활성 기여자 수가 이슈 처리 속도에 영향을 준다 (CNCF DevStats/GitHub API 기반)</li>
+    </ul>
+
+    <h3>A.2 후보를 접은 이유와 최종 선택 이유</h3>
+    <p>후보 A는 두 API를 직접 매칭해야 해서 데이터 정제 작업량이 가장 크고 완주 위험이 있어 접었다. 후보 B는 데이터가 이미 라벨링돼 실행은 쉬웠지만 표준 분류 문제에 가까워 참신성이 낮다고 판단해 접었다. 후보 C는 클라우드 엔지니어링 관심사를 직접 반영하면서, CNCF가 공식 운영하는 DevStats라는 목적에 맞는 공개 포털이 있어 신뢰도가 가장 높다고 판단해 채택했다.</p>
+
+    <h3>A.3 AI와 가설을 다듬은 과정</h3>
+    <p>① 관심 분야 제시 → ② AI가 공개 데이터 기반 후보 10개 제안 → ③ 그중 2개를 직접 지목하고 클라우드 주제 1개 추가 요청 → ④ AI가 CNCF DevStats 기반 주제를 제안 → ⑤ 가설 문장·측정 방법·반증 조건을 구체화한 뒤 최종 확정.</p>
+
+    <h3>A.4 데이터 수집 방식을 도중에 바꾼 이유</h3>
+    <p>원래 계획은 DevStats 대시보드에서 프로젝트별로 수동 다운로드하는 것이었으나, 100회 넘는 수작업이 필요해 GitHub REST API 자동 스크립트 방식으로 바꿨다. DevStats에서 확인한 “이 지표가 실제로 존재하고 의미 있다”는 사실은 유지하되, 수집 경로만 재현 가능한 스크립트로 바꾼 것이다.</p>
+
+    <h3>A.5 참고문헌 출처 확인 방법</h3>
+    <p>각 논문 제목을 웹 검색해 학술 출판사(Springer, MDPI, ACM) 또는 arXiv의 원문 페이지·DOI가 실제로 존재함을 확인했으며, 4개 URL 모두 로그인·계정 생성 없이 새 창에서 열리는 것을 확인했다.</p>
+
+    <h3>AI와 나의 판단</h3>
+    <div class="ai-split">
+      <div class="item"><span class="n">01</span><span><b>주제·가설 선택</b> — AI가 후보 10개를 제안했지만, 2개를 직접 지목하고 클라우드 주제를 추가 요청한 것, 최종적으로 후보 C를 가설로 확정한 것은 내 판단이다.</span></div>
+      <div class="item"><span class="n">02</span><span><b>데이터 수집 방법 전환</b> — AI가 GitHub API 스크립트 방식을 제안했지만, 토큰 발급과 실제 실행은 보안을 위해 내가 직접 진행했다.</span></div>
+      <div class="item"><span class="n">03</span><span><b>결과 해석</b> — 통계 계산은 AI가 했지만, 반대로 나온 결과를 가설에 맞춰 짜맞추지 않고 있는 그대로 “기각”으로 받아들이기로 한 것은 내 판단이다.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    과제 10 · AI와 함께 쓰는 첫 논문 — 가설에서 결론까지 · 완성 논문(.docx) 및 재현 패키지는 별도 제공
+  </footer>
+</div>
+
+<script>
+(function () {
+  var DATA = {
+    "Envoy": [[54,101.47],[61,84.33],[55,97.47],[63,112.68],[56,93.40],[62,100.82],[71,109.68],[74,221.44],[61,168.02],[87,95.16],[81,64.36],[97,112.82]],
+    "Prometheus": [[25,165.47],[33,181.74],[40,290.30],[31,215.68],[37,465.11],[40,177.45],[46,210.18],[42,211.07],[27,497.14],[47,161.12],[54,306.57],[55,629.95]],
+    "containerd": [[21,622.07],[21,303.03],[22,311.31],[24,10.74],[26,56.41],[23,354.42],[32,97.58],[36,212.43],[19,71.70],[32,71.55],[30,611.03],[25,344.53]],
+    "etcd": [[23,428.30],[21,552.98],[10,90.06],[18,610.54],[16,202.92],[13,103.16],[20,184.68],[19,356.38],[21,157.94],[16,224.25],[19,219.30],[15,371.18]],
+    "Vitess": [[13,219.67],[15,207.54],[16,71.12],[16,195.07],[16,81.38],[20,188.96],[16,159.71],[20,38.35],[16,291.08],[18,114.49],[22,125.48],[15,27.42]],
+    "CoreDNS": [[7,172.21],[7,154.67],[15,321.99],[9,29.34],[9,303.49],[13,300.84],[9,27.65],[13,76.83],[12,332.55],[24,578.57],[18,779.94]],
+    "Helm": [[25,365.23],[20,378.79],[24,158.06],[20,123.81],[16,288.97],[14,210.96],[12,371.92],[19,197.09],[18,309.24],[13,239.17],[22,140.77],[15,272.60]],
+    "TiKV": [[16,79.94],[11,127.54],[10,35.79],[12,117.45],[18,49.28],[9,25.72],[13,33.39],[9,8.37],[10,23.32],[14,76.63],[13,83.25],[17,154.35]],
+    "Linkerd": [[8,140.39],[6,60.12],[10,32.43],[4,152.01],[5,142.19],[5,504.96],[8,192.81],[14,54.27],[10,369.72],[9,142.52],[10,792.52],[8,354.40]],
+    "Rook": [[13,103.65],[14,57.11],[20,75.56],[12,180.26],[14,182.54],[16,112.90],[19,178.28],[22,52.62],[20,181.71],[21,72.84],[24,244.08],[17,51.39]]
+  };
+  var STATS = [
+    ["CoreDNS", 0.761, 0.000, 11, 12.4, 279.8],
+    ["etcd", 0.495, 0.072, 12, 17.6, 291.8],
+    ["TiKV", 0.485, 0.080, 12, 12.7, 67.9],
+    ["Prometheus", 0.234, 0.447, 12, 39.8, 292.7],
+    ["Rook", 0.088, 0.780, 12, 17.7, 124.4],
+    ["Envoy", 0.024, 0.940, 12, 68.5, 113.5],
+    ["Linkerd", -0.008, 0.979, 12, 8.1, 244.9],
+    ["containerd", -0.160, 0.609, 12, 25.9, 255.6],
+    ["Helm", -0.213, 0.491, 12, 18.2, 254.7],
+    ["Vitess", -0.254, 0.406, 12, 16.9, 143.4]
+  ];
+
+  // ---- results table ----
+  var tbody = document.getElementById("results-body");
+  var rows = "";
+  function fmt(n) { return (n >= 0 ? "+" : "") + n.toFixed(3); }
+  STATS.forEach(function (s) {
+    var reversed = s[1] > 0;
+    rows += "<tr><td>" + s[0] + "</td>" +
+      "<td class='num'>" + fmt(s[1]) + "</td>" +
+      "<td class='num'>" + s[2].toFixed(3) + "</td>" +
+      "<td class='num'>" + s[3] + "</td>" +
+      "<td class='num'>" + s[4].toFixed(1) + "</td>" +
+      "<td class='num'>" + s[5].toFixed(1) + "</td>" +
+      "<td><span class='pill " + (reversed ? "rev" : "sup") + "'><i></i>" + (reversed ? "반대 방향" : "가설 방향") + "</span></td></tr>";
+  });
+  rows += "<tr class='pooled'><td>전체 (pooled)</td><td class='num'>-0.041</td><td class='num'>0.661</td><td class='num'>119</td><td class='num'>23.9</td><td class='num'>206.3</td><td><span class='pill rev'><i></i>관계 없음</span></td></tr>";
+  tbody.innerHTML = rows;
+
+  // ---- scatter chart ----
+  var svgNS = "http://www.w3.org/2000/svg";
+  var svg = document.getElementById("chart");
+  var tooltip = document.getElementById("tooltip");
+  var W = 640, H = 400, M = { l: 44, r: 14, t: 14, b: 34 };
+  var xMax = 100, yMax = 820;
+
+  function sx(v) { return M.l + (v / xMax) * (W - M.l - M.r); }
+  function sy(v) { return H - M.b - (v / yMax) * (H - M.t - M.b); }
+
+  function el(tag, attrs) {
+    var e = document.createElementNS(svgNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  // grid + axes
+  var gGrid = el("g", { class: "grid" });
+  [0, 200, 400, 600, 800].forEach(function (v) {
+    gGrid.appendChild(el("line", { x1: M.l, x2: W - M.r, y1: sy(v), y2: sy(v) }));
+    var t = el("text", { class: "axis-label", x: M.l - 6, y: sy(v) + 3, "text-anchor": "end" });
+    t.textContent = v; gGrid.appendChild(t);
+  });
+  [0, 25, 50, 75, 100].forEach(function (v) {
+    var t = el("text", { class: "axis-label", x: sx(v), y: H - M.b + 16, "text-anchor": "middle" });
+    t.textContent = v; gGrid.appendChild(t);
+  });
+  svg.appendChild(gGrid);
+  svg.appendChild(el("line", Object.assign({ class: "axis" }, { x1: M.l, x2: W - M.r, y1: H - M.b, y2: H - M.b })));
+  svg.appendChild(el("line", Object.assign({ class: "axis" }, { x1: M.l, x2: M.l, y1: M.t, y2: H - M.b })));
+
+  var cs = getComputedStyle(document.documentElement);
+  function tok(name) { return cs.getPropertyValue(name).trim(); }
+
+  var wrap = document.getElementById("chart-wrap");
+  function showTip(evt, html) {
+    tooltip.innerHTML = html;
+    tooltip.style.opacity = 1;
+    var r = wrap.getBoundingClientRect();
+    tooltip.style.left = (evt.clientX - r.left) + "px";
+    tooltip.style.top = (evt.clientY - r.top - 10) + "px";
+  }
+  function hideTip() { tooltip.style.opacity = 0; }
+
+  Object.keys(DATA).forEach(function (proj) {
+    var color = proj === "CoreDNS" ? "var(--bad)" : (proj === "Envoy" ? "var(--accent)" : "var(--muted)");
+    DATA[proj].forEach(function (pt) {
+      var c = el("circle", {
+        cx: sx(pt[0]), cy: sy(pt[1]), r: 4,
+        fill: color, "fill-opacity": proj === "CoreDNS" || proj === "Envoy" ? 0.85 : 0.45,
+        stroke: tok("--surface") || "#fff", "stroke-width": 1,
+      });
+      c.addEventListener("pointerenter", function (e) {
+        c.setAttribute("r", 6);
+        showTip(e, "<b>" + proj + "</b><br>기여자 " + pt[0] + "명 · 처리 " + pt[1].toFixed(1) + "일");
+      });
+      c.addEventListener("pointermove", function (e) { showTip(e, tooltip.innerHTML); });
+      c.addEventListener("pointerleave", function () { c.setAttribute("r", 4); hideTip(); });
+      svg.appendChild(c);
+    });
+  });
+})();
+</script>
